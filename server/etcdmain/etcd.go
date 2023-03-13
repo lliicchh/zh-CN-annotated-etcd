@@ -44,6 +44,7 @@ var (
 func startEtcdOrProxyV2(args []string) {
 	grpc.EnableTracing = false
 
+	// 构造配置数据
 	cfg := newConfig()
 	defaultInitialCluster := cfg.ec.InitialCluster
 
@@ -126,6 +127,7 @@ func startEtcdOrProxyV2(args []string) {
 			zap.String("data-dir", cfg.ec.Dir),
 			zap.String("dir-type", string(which)),
 		)
+		// 启动etcd
 		stopped, errc, err = startEtcd(&cfg.ec)
 	}
 

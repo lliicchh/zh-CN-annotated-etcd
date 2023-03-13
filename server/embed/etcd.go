@@ -90,6 +90,8 @@ type peerListener struct {
 // StartEtcd launches the etcd server and HTTP handlers for client/server communication.
 // The returned Etcd.Server is not guaranteed to have joined the cluster. Wait
 // on the Etcd.Server.ReadyNotify() channel to know when it completes and is ready for use.
+// 启动etcd 服务和http 服务
+// Etcd.Server.readych 有数据可读时 表示 etcd 服务准备好
 func StartEtcd(inCfg *Config) (e *Etcd, err error) {
 	if err = inCfg.Validate(); err != nil {
 		return nil, err
@@ -492,6 +494,7 @@ func (e *Etcd) Err() <-chan error {
 	return e.errc
 }
 
+// 接收其他节点的端口
 func configurePeerListeners(cfg *Config) (peers []*peerListener, err error) {
 	if err = updateCipherSuites(&cfg.PeerTLSInfo, cfg.CipherSuites); err != nil {
 		return nil, err
@@ -605,6 +608,7 @@ func (e *Etcd) servePeers() (err error) {
 	return nil
 }
 
+// 接收客户端消息的端口
 func configureClientListeners(cfg *Config) (sctxs map[string]*serveCtx, err error) {
 	if err = updateCipherSuites(&cfg.ClientTLSInfo, cfg.CipherSuites); err != nil {
 		return nil, err

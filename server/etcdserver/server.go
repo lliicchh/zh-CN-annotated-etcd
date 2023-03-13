@@ -302,6 +302,7 @@ type EtcdServer struct {
 
 // NewServer creates a new EtcdServer from the supplied configuration. The
 // configuration is considered static for the lifetime of the EtcdServer.
+// 新建一个EtcdServer 实例, cfg 在实例的生命周期中不会更改
 func NewServer(cfg config.ServerConfig) (srv *EtcdServer, err error) {
 	b, err := bootstrap(cfg)
 	if err != nil {
