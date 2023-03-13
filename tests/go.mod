@@ -14,7 +14,7 @@ replace (
 )
 
 require (
-	github.com/anishathalye/porcupine v0.1.4
+	github.com/anishathalye/porcupine v0.1.5
 	github.com/coreos/go-semver v0.3.1
 	github.com/google/go-cmp v0.5.9
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
