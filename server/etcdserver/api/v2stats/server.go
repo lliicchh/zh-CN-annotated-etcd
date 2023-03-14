@@ -30,6 +30,7 @@ type ServerStats struct {
 	sync.Mutex
 }
 
+// NewServerStats 服务器的统计信息
 func NewServerStats(name, id string) *ServerStats {
 	ss := &ServerStats{
 		serverStats: serverStats{

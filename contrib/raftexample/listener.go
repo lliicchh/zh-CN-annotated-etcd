@@ -23,8 +23,8 @@ import (
 // stoppableListener sets TCP keep-alive timeouts on accepted
 // connections and waits on stopc message
 type stoppableListener struct {
-	*net.TCPListener
-	stopc <-chan struct{}
+	*net.TCPListener // 内嵌 tcp listener
+	stopc            <-chan struct{}
 }
 
 func newStoppableListener(addr string, stopc <-chan struct{}) (*stoppableListener, error) {
@@ -35,6 +35,7 @@ func newStoppableListener(addr string, stopc <-chan struct{}) (*stoppableListene
 	return &stoppableListener{ln.(*net.TCPListener), stopc}, nil
 }
 
+// Accept 重写  tcp listener 的 Accept 方法
 func (ln stoppableListener) Accept() (c net.Conn, err error) {
 	connc := make(chan *net.TCPConn, 1)
 	errc := make(chan error, 1)

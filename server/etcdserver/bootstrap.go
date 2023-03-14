@@ -51,6 +51,7 @@ import (
 	"go.etcd.io/raft/v3/raftpb"
 )
 
+// 存储storage, 集群cluster, 一致性协议cluster  的初始化和数据恢复
 func bootstrap(cfg config.ServerConfig) (b *bootstrappedServer, err error) {
 	if cfg.MaxRequestBytes > recommendedMaxRequestBytes {
 		cfg.Logger.Warn(

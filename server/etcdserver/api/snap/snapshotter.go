@@ -50,6 +50,7 @@ var (
 	}
 )
 
+// Snapshotter 定期创建快照并将其保存到本地磁盘中
 type Snapshotter struct {
 	lg  *zap.Logger
 	dir string

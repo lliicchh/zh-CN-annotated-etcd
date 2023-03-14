@@ -94,6 +94,7 @@ type Transporter interface {
 // received from peerURLs.
 // User needs to call Start before calling other functions, and call
 // Stop when the Transport is no longer used.
+// 实现了 Transporter 接口, 提供收发raft消息的功能
 type Transport struct {
 	Logger *zap.Logger
 
@@ -154,6 +155,7 @@ func (t *Transport) Start() error {
 	return nil
 }
 
+// Handler 创建 pipelineHandler streamHandler snapHandler 三个handler
 func (t *Transport) Handler() http.Handler {
 	pipelineHandler := newPipelineHandler(t, t.Raft, t.ClusterID)
 	streamHandler := newStreamHandler(t, t, t.Raft, t.ID, t.ClusterID)

@@ -215,39 +215,53 @@ type EtcdServer struct {
 	lead              uint64 // must use atomic operations to access; keep 64-bit aligned.
 
 	consistIndex cindex.ConsistentIndexer // consistIndex is used to get/set/save consistentIndex
-	r            raftNode                 // uses 64-bit atomics; keep 64-bit aligned.
+	// 与 raft 模块交互
+	r raftNode // uses 64-bit atomics; keep 64-bit aligned.
 
+	// etcd server 准备好接收客户端请求时, 关闭readych
 	readych chan struct{}
-	Cfg     config.ServerConfig
+
+	// 服务器配置
+	Cfg config.ServerConfig
 
 	lgMu *sync.RWMutex
 	lg   *zap.Logger
 
+	// 等待id触发事件
 	w wait.Wait
 
 	readMu sync.RWMutex
 	// read routine notifies etcd server that it waits for reading by sending an empty struct to
 	// readwaitC
+	// 通知etcd server 读等待
 	readwaitc chan struct{}
 	// readNotifier is used to notify the read routine that it can process the request
 	// when there is no error
+	// 通知etcd server 可以处理请求
 	readNotifier *notifier
 
 	// stop signals the run goroutine should shutdown.
+	// 发信号通知 run 协程关闭
 	stop chan struct{}
 	// stopping is closed by run goroutine on shutdown.
+	// run协程关闭后关闭 stopping chan
 	stopping chan struct{}
 	// done is closed when all goroutines from start() complete.
+	// 所有协程启动完成后关闭 done chan
 	done chan struct{}
 	// leaderChanged is used to notify the linearizable read loop to drop the old read requests.
 	leaderChanged *notify.Notifier
 
-	errorc     chan error
-	memberId   types.ID
+	errorc   chan error
+	memberId types.ID
+
+	// 集群成员节点的属性
 	attributes membership.Attributes
 
+	// 同一集群下的节点信息集合
 	cluster *membership.RaftCluster
 
+	// 存储
 	v2store     v2store.Store
 	snapshotter *snap.Snapshotter
 
@@ -257,9 +271,10 @@ type EtcdServer struct {
 
 	applyWait wait.WaitTime
 
-	kv         mvcc.WatchableKV
-	lessor     lease.Lessor
-	bemu       sync.RWMutex
+	kv     mvcc.WatchableKV
+	lessor lease.Lessor
+	bemu   sync.RWMutex
+
 	be         backend.Backend
 	beHooks    *serverstorage.BackendHooks
 	authStore  auth.AuthStore
@@ -270,16 +285,19 @@ type EtcdServer struct {
 
 	SyncTicker *time.Ticker
 	// compactor is used to auto-compact the KV.
+	// 自动压缩 KV
 	compactor v3compactor.Compactor
 
 	// peerRt used to send requests (version, lease) to peers.
-	peerRt   http.RoundTripper
+	peerRt http.RoundTripper
+	// 请求ID的生成器
 	reqIDGen *idutil.Generator
 
 	// wgMu blocks concurrent waitgroup mutation while server stopping
 	wgMu sync.RWMutex
 	// wg is used to wait for the goroutines that depends on the server state
 	// to exit when stopping the server.
+	// 在停止服务器时等待所有协程退出
 	wg sync.WaitGroup
 
 	// ctx is used for etcd-initiated requests that may need to be canceled
@@ -304,6 +322,7 @@ type EtcdServer struct {
 // configuration is considered static for the lifetime of the EtcdServer.
 // 新建一个EtcdServer 实例, cfg 在实例的生命周期中不会更改
 func NewServer(cfg config.ServerConfig) (srv *EtcdServer, err error) {
+	// 存储/raft/快照的初始化
 	b, err := bootstrap(cfg)
 	if err != nil {
 		return nil, err
@@ -315,10 +334,10 @@ func NewServer(cfg config.ServerConfig) (srv *EtcdServer, err error) {
 		}
 	}()
 
-	sstats := stats.NewServerStats(cfg.Name, b.cluster.cl.String())
-	lstats := stats.NewLeaderStats(cfg.Logger, b.cluster.nodeID.String())
+	sstats := stats.NewServerStats(cfg.Name, b.cluster.cl.String())       // etcd server的统计信息
+	lstats := stats.NewLeaderStats(cfg.Logger, b.cluster.nodeID.String()) // leader的统计信息
 
-	heartbeat := time.Duration(cfg.TickMs) * time.Millisecond
+	heartbeat := time.Duration(cfg.TickMs) * time.Millisecond // 配置的心跳间隔时间 heartbeat-interval
 	srv = &EtcdServer{
 		readych:               make(chan struct{}),
 		Cfg:                   cfg,
@@ -341,9 +360,9 @@ func NewServer(cfg config.ServerConfig) (srv *EtcdServer, err error) {
 		firstCommitInTerm:     notify.NewNotifier(),
 		clusterVersionChanged: notify.NewNotifier(),
 	}
-	serverID.With(prometheus.Labels{"server_id": b.cluster.nodeID.String()}).Set(1)
-	srv.cluster.SetVersionChangedNotifier(srv.clusterVersionChanged)
-	srv.applyV2 = NewApplierV2(cfg.Logger, srv.v2store, srv.cluster)
+	serverID.With(prometheus.Labels{"server_id": b.cluster.nodeID.String()}).Set(1) //prometheus 的统计信息
+	srv.cluster.SetVersionChangedNotifier(srv.clusterVersionChanged)                // cluster版本更新通知
+	srv.applyV2 = NewApplierV2(cfg.Logger, srv.v2store, srv.cluster)                // Raft message 消息处理接口
 
 	srv.be = b.storage.backend.be
 	srv.beHooks = b.storage.backend.beHooks

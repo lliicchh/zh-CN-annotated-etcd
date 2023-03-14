@@ -145,6 +145,7 @@ func (s *EtcdServer) Put(ctx context.Context, r *pb.PutRequest) (*pb.PutResponse
 	if err != nil {
 		return nil, err
 	}
+	s.lg.Info(">> server get put cmd")
 	return resp.(*pb.PutResponse), nil
 }
 

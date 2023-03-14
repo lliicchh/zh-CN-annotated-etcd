@@ -50,7 +50,7 @@ type raftNode struct {
 	errorC      chan<- error             // errors from raft session
 
 	id          int      // client ID for raft session
-	peers       []string // raft peer URLs
+	peers       []string // raft peer URLs 当前节点的url
 	join        bool     // node is joining an existing cluster
 	waldir      string   // path to WAL directory
 	snapdir     string   // path to snapshot directory
@@ -84,6 +84,7 @@ var defaultSnapshotCount uint64 = 10000
 // provided the proposal channel. All log entries are replayed over the
 // commit channel, followed by a nil message (to indicate the channel is
 // current), then new log entries. To shutdown, close proposeC and read errorC.
+// 初始化一个raft 实例，返回已提交日志条目chan和一个err chan
 func newRaftNode(id int, peers []string, join bool, getSnapshot func() ([]byte, error), proposeC <-chan string,
 	confChangeC <-chan raftpb.ConfChange) (<-chan *commit, <-chan error, <-chan *snap.Snapshotter) {
 

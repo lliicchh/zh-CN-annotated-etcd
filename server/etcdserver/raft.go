@@ -73,6 +73,8 @@ type toApply struct {
 	notifyc chan struct{}
 }
 
+// 内嵌 raftNodeConfig, raftNodeConfig 内嵌 etcd-raft 中的 Node
+// raftNode即可完成与etcd-raft模块的交互
 type raftNode struct {
 	lg *zap.Logger
 
@@ -110,6 +112,8 @@ type raftNodeConfig struct {
 	// Sending messages MUST NOT block. It is okay to drop messages, since
 	// clients should timeout and reissue their messages.
 	// If transport is nil, server will panic.
+	// 指定raft node间收发消息的方式
+	// 发送方法必须是非阻塞，接受丢消息，因为客户端会超时重发
 	transport rafthttp.Transporter
 }
 

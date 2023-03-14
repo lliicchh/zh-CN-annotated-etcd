@@ -35,8 +35,8 @@ cp "${BINARYDIR}"/etcd "${BINARYDIR}"/etcdctl "${BINARYDIR}"/etcdutl "${IMAGEDIR
 cat ./"${DOCKERFILE}" > "${IMAGEDIR}"/Dockerfile
 
 if [ -z "$TAG" ]; then
-    docker build -t "gcr.io/etcd-development/etcd:${VERSION}" "${IMAGEDIR}"
-    docker build -t "quay.io/coreos/etcd:${VERSION}" "${IMAGEDIR}"
+    docker -H ssh://ubuntu@txy1  build -t "gcr.io/etcd-development/etcd:${VERSION}" "${IMAGEDIR}"
+    docker -H ssh://ubuntu@txy1 build -t "quay.io/coreos/etcd:${VERSION}" "${IMAGEDIR}"
 else
-    docker build -t "${TAG}:${VERSION}" "${IMAGEDIR}"
+    docker -H ssh://ubuntu@txy1 build -t "${TAG}:${VERSION}" "${IMAGEDIR}"
 fi
